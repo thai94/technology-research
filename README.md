@@ -5,4 +5,4 @@
 - Redis/ Redis cluster
 - Cassandra/ Cassandra cluster
 - ActiveMQ
-
+- Jaeger
