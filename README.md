@@ -1,4 +1,4 @@
-# Common Software Architectural Patterns
+# Research List
 
 - Docker
 - Server to server communication
