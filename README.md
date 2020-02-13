@@ -6,3 +6,4 @@
 - Cassandra/ Cassandra cluster
 - ActiveMQ
 - Jaeger
+- Thread Pool/ Peak CPU
