@@ -106,3 +106,5 @@ docker run -d --name=grafana -p 3000:3000 grafana/grafana
 ```
 
 That’s it! You can now navigate to http://localhost:3000 and log in to Grafana with the default username admin and password admin.
+
+![Grafana](./grafana.png)
