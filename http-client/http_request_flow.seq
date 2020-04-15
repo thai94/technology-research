@@ -1,0 +1,16 @@
+@startuml
+Client <-> Server: Establsh TCP connection
+Client <-- Server: Server accepted/ rejected connection
+
+... ...
+
+Client -> Server: fetching resource
+Client <-- Server: response requested resource
+...other request/response if has...
+
+... ...
+
+Client <-> Server: Close connection
+
+
+@enduml
