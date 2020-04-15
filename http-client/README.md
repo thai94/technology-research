@@ -1560,4 +1560,18 @@ public class MultiHttpClientConnThread extends Thread {
 
 ### c. NoHttpResponseException
 
+- Signals that the target server failed to respond with a valid HTTP response.
 - Can not preprocedure
+```java
+this.lineBuf.clear();
+int i = sessionBuffer.readLine(this.lineBuf);
+if (i == -1 && count == 0) {
+	throw new NoHttpResponseException("The target server failed to respond");
+}
+```
+
+## Refs
+- https://gist.github.com/AlexanderOnbysh/d05074d0edca4b814c838e968186ae82
+- https://www.baeldung.com/httpclient-guide
+- http://hc.apache.org/httpcomponents-client-4.3.x/tutorial/html/connmgmt.html
+- https://hc.apache.org/httpcomponents-core-4.4.x/httpcore/apidocs/org/apache/http/NoHttpResponseException.html
