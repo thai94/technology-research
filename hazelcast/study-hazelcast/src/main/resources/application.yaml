@@ -1,0 +1,6 @@
+study:
+  hazelcast:
+    namespace: default
+    service-name: hzc-service-name
+server:
+  port: 8080
