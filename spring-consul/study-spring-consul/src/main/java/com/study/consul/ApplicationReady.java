@@ -1,24 +1,38 @@
 package com.study.consul;
 
-import com.ecwid.consul.v1.ConsulClient;
-import com.ecwid.consul.v1.QueryParams;
-import com.ecwid.consul.v1.kv.model.PutParams;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.cloud.bootstrap.config.BootstrapPropertySource;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ApplicationReady {
 
+    private static final Logger logger = LogManager.getLogger();
+
     @Autowired
-    ConsulClient consulClient;
+    private ConfigurableEnvironment configurableEnvironment;
 
     @EventListener(ApplicationReadyEvent.class)
     public void ready() {
-//        consulClient.getKVValue("transfer/study/qc/stable", "43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34");
-//        consulClient.setKVValue("transfer/study/qc/stable", "abc", "43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34", new PutParams(), QueryParams.DEFAULT);
-        System.out.println("Ready...");
+        logger.info("##################### File Properties #####################");
+        showConfigProperties();
+        logger.info("##################### Application Started On Port {} #####################", 8080);
+    }
+
+    private void showConfigProperties() {
+        configurableEnvironment.getPropertySources().forEach(it -> {
+            if (it instanceof BootstrapPropertySource) {
+                for (String key : ((BootstrapPropertySource<?>) it).getPropertyNames()) {
+                    logger.info(key + "=" + it.getProperty(key));
+                }
+            }
+        });
     }
 
 }
