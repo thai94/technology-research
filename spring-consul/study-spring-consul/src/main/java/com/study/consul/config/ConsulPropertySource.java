@@ -125,19 +125,6 @@ public class ConsulPropertySource extends EnumerablePropertySource<ConsulClient>
 		return props;
 	}
 
-	/**
-	 * @deprecated As of 1.1.0 use {@link GetValue#getDecodedValue()}.
-	 * @param value encoded value
-	 * @return the decoded string
-	 */
-	@Deprecated
-	public String getDecoded(String value) {
-		if (value == null) {
-			return null;
-		}
-		return new String(decodeFromString(value));
-	}
-
 	protected Map<String, Object> getProperties() {
 		return this.properties;
 	}
