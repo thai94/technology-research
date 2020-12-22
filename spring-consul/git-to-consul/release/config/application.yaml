@@ -9,6 +9,6 @@ spring:
             token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
 zalopay:
     git2consul:
-        base-dir: /Users/lap14153/Documents/study/technology-research/spring-consul/git-to-consul/src/main/resources/
+        base-dir: ./
         context-pub: transfer/study/pub
         context-secret: transfer/study/secret

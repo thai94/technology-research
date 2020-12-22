@@ -8,10 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.consul.ConsulProperties;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Component;
 import study.git2consul.properties.Git2ConsulProperties;
 
 import java.io.BufferedInputStream;
@@ -21,11 +20,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@RestController
-public class SynchConfigController {
+@Component
+public class SynchConfigLogic {
 
     @Autowired
-    ConsulClient consul;
+    ConsulClient consulClient;
 
     @Autowired
     Git2ConsulProperties git2ConsulPropertiesl;
@@ -38,22 +37,40 @@ public class SynchConfigController {
 
     private final String DATA_KEY = "application";
 
-    @RequestMapping("/synch-config/{version}/{env}")
-    public String index(@PathVariable("version") String version, @PathVariable("env") String env) throws IOException {
+    public int synchPubConfig(String version, String env) throws IOException {
 
         // read config
-        byte[] dataConfig = readConfig(version, env);
+        byte[] dataConfig = readConfig(version, env, 1);
 
         // update to consul
-        boolean result = update2Consul(dataConfig, version, env);
+        boolean result = update2Consul(dataConfig, version, env, 1);
         if(result) {
-            return "success";
+            return 1;
         }
-        return "failure";
+        return 0;
     }
 
-    private byte[] readConfig(String version, String env) throws IOException {
-        Resource resource = new ClassPathResource(git2ConsulPropertiesl.getContextPub() + "/" + env + "/" + DATA_KEY + ".yaml");
+    public int synchSecretConfig(String version, String env) throws IOException {
+        // read config
+        byte[] dataConfig = readConfig(version, env, 2);
+
+        // update to consul
+        boolean result = update2Consul(dataConfig, version, env, 2);
+        if(result) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private byte[] readConfig(String version, String env, int type) throws IOException {
+        Resource resource = null;
+        // public
+        if(type == 1) {
+            resource = new FileSystemResource(git2ConsulPropertiesl.getBaseDir() + git2ConsulPropertiesl.getContextPub() + "/" + env + "/" + DATA_KEY + ".yaml");
+        } else {
+            resource = new FileSystemResource(git2ConsulPropertiesl.getBaseDir() + git2ConsulPropertiesl.getContextSecret() + "/" + env + "/" + DATA_KEY + ".yaml");
+        }
+
         BufferedInputStream buffInputStr = new BufferedInputStream(resource.getInputStream());
         int rem_byte = buffInputStr.available();
         byte[] data = new byte[rem_byte];
@@ -70,18 +87,28 @@ public class SynchConfigController {
         return data;
     }
 
-    private boolean update2Consul(byte[] data, String version, String env) {
+    private boolean update2Consul(byte[] data, String version, String env, int type) {
 
         // get context
-        String context = getContext(version, env);
+        String context = "";
+        if(type == 1) {
+            context = getPubContext(version, env);
+        } else {
+            context = getSecretContext(version, env);
+        }
+
         String key = context + "/" + DATA_KEY;
-        Response<Boolean> resp = consul.setKVBinaryValue(key, data, aclToken, new PutParams(), QueryParams.DEFAULT);
+        Response<Boolean> resp = consulClient.setKVBinaryValue(key, data, aclToken, new PutParams(), QueryParams.DEFAULT);
         return resp.getValue();
     }
 
-    private String getContext(String version, String env) {
+    private String getSecretContext(String version, String env) {
+        return git2ConsulPropertiesl.getContextSecret() + "/" + env;
+    }
+
+    private String getPubContext(String version, String env) {
         String baseContext = git2ConsulPropertiesl.getContextPub() + "/" + env + "/";
-        Response<List<String>> keysResp = this.consul.getKVKeysOnly(baseContext, "", aclToken);
+        Response<List<String>> keysResp = this.consulClient.getKVKeysOnly(baseContext, "", aclToken);
         List<String> keys = keysResp.getValue();
         Pattern pattern = Pattern.compile(baseContext + version + "-[0-9]+/" + DATA_KEY + "$");
         List<String> filterKeys = new ArrayList<>();

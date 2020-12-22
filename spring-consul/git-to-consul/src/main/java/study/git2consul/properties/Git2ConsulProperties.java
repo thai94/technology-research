@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties("zalopay.git2consul")
 public class Git2ConsulProperties {
+
+    private String baseDir;
     private String contextPub;
     private String contextSecret;
 
@@ -23,5 +25,13 @@ public class Git2ConsulProperties {
 
     public void setContextSecret(String contextSecret) {
         this.contextSecret = contextSecret;
+    }
+
+    public String getBaseDir() {
+        return baseDir;
+    }
+
+    public void setBaseDir(String baseDir) {
+        this.baseDir = baseDir;
     }
 }
