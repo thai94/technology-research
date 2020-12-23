@@ -9,6 +9,6 @@ spring:
             token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
 zalopay:
     git2consul:
-        base-dir: ./ # workspace
-        context-pub: transfer/study/pub
-        context-secret: transfer/study/secret
+        base-dir: ./
+        context-pub: td/withdraw/td-app-client-withdraw/pub
+        context-secret: td/withdraw/td-app-client-withdraw/secret
