@@ -1,4 +1,4 @@
-package study.git2consul.controller;
+package study.git2consul.logic;
 
 import com.ecwid.consul.v1.ConsulClient;
 import com.ecwid.consul.v1.QueryParams;
@@ -7,7 +7,6 @@ import com.ecwid.consul.v1.kv.model.PutParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.consul.ConsulProperties;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
