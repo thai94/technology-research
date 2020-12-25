@@ -1,14 +1,14 @@
 spring:
-    main:
-        web-application-type: "none"
-        banner-mode: "off"
-    cloud:
-        consul:
-            host: http://10.40.81.2
-            port: 7510
-            token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
+  main:
+    web-application-type: "none"
+    banner-mode: "off"
+  cloud:
+    consul:
+      host: http://10.40.81.2
+      port: 7510
+      token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
 zalopay:
-    git2consul:
-        base-dir: /Users/lap14153/Documents/study/technology-research/spring-consul/git-to-consul/src/main/resources/
-        context-pub: transfer/study/pub
-        context-secret: transfer/study/secret
+  git2consul:
+    base-dir: /Users/lap14153/Documents/study/technology-research/spring-consul/git-to-consul/src/main/resources/
+    context-pub: transfer/study/pub
+    context-secret: transfer/study/secret

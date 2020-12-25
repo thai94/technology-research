@@ -1,14 +1,14 @@
 spring:
-    main:
-        web-application-type: "none"
-        banner-mode: "off"
-    cloud:
-        consul:
-            host: http://10.40.81.2
-            port: 7510
-            token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
+  main:
+    web-application-type: "none"
+    banner-mode: "off"
+  cloud:
+    consul:
+      host: http://10.40.81.2
+      port: 7510
+      token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
 zalopay:
-    git2consul:
-        base-dir: ./
-        context-pub: td/withdraw/td-app-client-withdraw/pub
-        context-secret: td/withdraw/td-app-client-withdraw/secret
+  git2consul:
+    base-dir: ./
+    context-pub: td/withdraw/td-app-client-withdraw/pub
+    context-secret: td/withdraw/td-app-client-withdraw/secret

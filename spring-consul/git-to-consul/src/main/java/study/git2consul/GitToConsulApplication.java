@@ -11,34 +11,34 @@ import study.git2consul.logic.SynchConfigLogic;
 @SpringBootApplication
 public class GitToConsulApplication implements CommandLineRunner {
 
-	@Autowired
-	SynchConfigLogic synchConfigLogic;
+    private static Logger LOG = LoggerFactory
+            .getLogger(GitToConsulApplication.class);
+    @Autowired
+    SynchConfigLogic synchConfigLogic;
 
-	private static Logger LOG = LoggerFactory
-			.getLogger(GitToConsulApplication.class);
+    public static void main(String[] args) {
+        SpringApplication.run(GitToConsulApplication.class, args);
+    }
 
-	public static void main(String[] args) {
-		SpringApplication.run(GitToConsulApplication.class, args);
-	}
+    /**
+     * 0: version
+     * 1: env
+     *
+     * @param args
+     * @throws Exception
+     */
+    @Override
+    public void run(String... args) throws Exception {
+        LOG.info("==> Starting");
+        LOG.info(String.format("Params: %s <=> %s", args[0], args[1]));
 
-	/**
-	 * 0: version
-	 * 1: env
-	 * @param args
-	 * @throws Exception
-	 */
-	@Override
-	public void run(String... args) throws Exception {
-		LOG.info("==> Starting");
-		LOG.info(String.format("Params: %s-%s", args[0], args[1]));
-
-		int resultPub = synchConfigLogic.synchPubConfig(args[0], args[1]);
-		int resultSecret = synchConfigLogic.synchSecretConfig(args[0], args[1]);
-		LOG.info("==> Ended");
-		if(resultPub == 1 && resultSecret == 1) {
-			System.exit(1);
-			return;
-		}
-		System.exit(0);
-	}
+        int resultPub = synchConfigLogic.synchPubConfig(args[0], args[1]);
+        int resultSecret = synchConfigLogic.synchSecretConfig(args[0], args[1]);
+        LOG.info("==> Ended");
+        if (resultPub == 1 && resultSecret == 1) {
+            System.exit(1);
+            return;
+        }
+        System.exit(0);
+    }
 }
