@@ -13,9 +13,13 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import study.git2consul.GitToConsulApplication;
+import study.git2consul.constant.SyncType;
+import study.git2consul.exception.ServiceNotFoundException;
 import study.git2consul.properties.Git2ConsulProperties;
+import study.git2consul.validate.InputValidate;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 
 @Component
@@ -23,7 +27,9 @@ public class SynchConfigLogic {
 
     private static Logger LOG = LoggerFactory
             .getLogger(GitToConsulApplication.class);
-    private final String DATA_KEY = "application";
+
+    private final int BUFFER_READ_FILE_SIZE = 1024; // byte
+
     @Autowired
     ConsulClient consulClient;
     @Autowired
@@ -34,107 +40,88 @@ public class SynchConfigLogic {
     private String aclToken;
 
     /**
-     * @param version x.y.x-<incresing number>
-     * @param env     qc|stg|real
+     * @param releaseVersion x.y.x-<incresing number>
+     * @param env            qc|stg|real
      * @return
      * @throws IOException
      */
-    public int synchPubConfig(String version, String env) throws IOException {
+    public boolean synchPubConfig(String serviceName, String releaseVersion, String env, String workSpaceDir) throws IOException {
+
+        Git2ConsulProperties.ServiceConfig serviceConfig = git2ConsulPropertiesl.findServiceConfigByServiceName(serviceName);
+
+        if (serviceConfig == null) {
+            throw new ServiceNotFoundException(serviceName);
+        }
+
+        InputValidate.validatePubParams(serviceName, releaseVersion, env, workSpaceDir);
 
         // read config
-        byte[] dataConfig = readConfig(version, env, 1);
+        byte[] configData = readConfig(workSpaceDir, env, SyncType.PUB, serviceConfig);
 
         // update to consul
-        boolean result = update2Consul(dataConfig, version, env, 1);
-        if (result) {
-            return 1;
-        }
-        return 0;
+        return sync2Consul(configData, releaseVersion, env, SyncType.PUB, serviceConfig);
     }
 
-    public int synchSecretConfig(String version, String env) throws IOException {
+    public boolean synchSecretConfig(String serviceName, String env, String workSpaceDir) throws IOException {
+
+        Git2ConsulProperties.ServiceConfig serviceConfig = git2ConsulPropertiesl.findServiceConfigByServiceName(serviceName);
+
+        if (serviceConfig == null) {
+            throw new ServiceNotFoundException(serviceName);
+        }
+
+        InputValidate.validateSecretParams(serviceName, env, workSpaceDir);
+
         // read config
-        byte[] dataConfig = readConfig(version, env, 2);
+        byte[] configData = readConfig(workSpaceDir, env, SyncType.SECRET, serviceConfig);
 
         // update to consul
-        boolean result = update2Consul(dataConfig, version, env, 2);
-        if (result) {
-            return 1;
-        }
-        return 0;
+        return sync2Consul(configData, "none", env, SyncType.SECRET, serviceConfig);
     }
 
-    private byte[] readConfig(String version, String env, int type) throws IOException {
-        Resource resource = null;
+    private byte[] readConfig(String workSpaceDir, String env, SyncType syncType, Git2ConsulProperties.ServiceConfig serviceConfig) throws IOException {
+
+        String path = "";
         // public
-        if (type == 1) {
-            resource = new FileSystemResource(git2ConsulPropertiesl.getBaseDir() + git2ConsulPropertiesl.getContextPub() + "/" + env + "/" + DATA_KEY + ".yaml");
+        if (syncType == SyncType.PUB) {
+            path = workSpaceDir + File.separator + serviceConfig.getPubPathGit() + File.separator + env + File.separator
+                    + git2ConsulPropertiesl.getGitConfigFileName();
         } else {
-            resource = new FileSystemResource(git2ConsulPropertiesl.getBaseDir() + git2ConsulPropertiesl.getContextSecret() + "/" + env + "/" + DATA_KEY + ".yaml");
+            path = workSpaceDir + File.separator + serviceConfig.getSecretPathGit() + File.separator + env + File.separator
+                    + git2ConsulPropertiesl.getGitConfigFileName();
         }
+        path = path.replaceAll(File.separator + File.separator, File.separator);
+        Resource resource = new FileSystemResource(path);
 
         BufferedInputStream buffInputStr = new BufferedInputStream(resource.getInputStream());
-        int rem_byte = buffInputStr.available();
-        byte[] data = new byte[rem_byte];
+        int totalByte = buffInputStr.available();
+        byte[] data = new byte[totalByte];
         int position = 0;
-        int numberReadByte = -1;
-        int block = 1028;
+        int numberOfByteRead = -1;
+        int bufferSize = 0;
         do {
-            block = buffInputStr.available() > 1028 ? 1028 : buffInputStr.available();
-            numberReadByte = buffInputStr.read(data, position, block);
-            if (numberReadByte > 0) {
-                position += numberReadByte;
+            bufferSize = buffInputStr.available() > BUFFER_READ_FILE_SIZE ? BUFFER_READ_FILE_SIZE : buffInputStr.available();
+            numberOfByteRead = buffInputStr.read(data, position, bufferSize);
+            if (numberOfByteRead > 0) {
+                position += numberOfByteRead;
             }
-        } while (numberReadByte > 0);
+        } while (numberOfByteRead > 0);
         return data;
     }
 
-    private boolean update2Consul(byte[] data, String version, String env, int type) {
+    private boolean sync2Consul(byte[] data, String releaseVersion, String env, SyncType syncType, Git2ConsulProperties.ServiceConfig serviceConfig) {
 
         // get context
-        String context = "";
-        if (type == 1) {
-            context = getPubContext(version, env);
+        String key = "";
+        if (syncType == SyncType.PUB) {
+            key = serviceConfig.getPubPathConsul() + File.separator + env + File.separator + releaseVersion + File.separator
+                    + git2ConsulPropertiesl.getDataKey();
         } else {
-            context = getSecretContext(version, env);
+            key = serviceConfig.getSecretPathConsul() + File.separator + env + File.separator + git2ConsulPropertiesl.getDataKey();
         }
+        key = key.replaceAll(File.separator + File.separator, File.separator);
 
-        String key = context + "/" + DATA_KEY;
         Response<Boolean> resp = consulClient.setKVBinaryValue(key, data, aclToken, new PutParams(), QueryParams.DEFAULT);
-        if (type == 1) {
-            LOG.info("Finish updated to consul public with key: " + key);
-        } else {
-            LOG.info("Finish updated to consul secret with key: " + key);
-        }
-
         return resp.getValue();
-    }
-
-    private String getSecretContext(String version, String env) {
-        return git2ConsulPropertiesl.getContextSecret() + "/" + env;
-    }
-
-    private String getPubContext(String version, String env) {
-        String baseContext = git2ConsulPropertiesl.getContextPub() + "/" + env + "/" + version;
-        return baseContext;
-
-//        Response<List<String>> keysResp = this.consulClient.getKVKeysOnly(baseContext, "", aclToken);
-//        List<String> keys = keysResp.getValue();
-//        Pattern pattern = Pattern.compile(baseContext + version + "-[0-9]+/" + DATA_KEY + "$");
-//        List<String> filterKeys = new ArrayList<>();
-//        for(String key : keys) {
-//            if(pattern.matcher(key).matches()) {
-//                filterKeys.add(key);
-//            }
-//        }
-//        if(filterKeys.size() == 0) {
-//            return baseContext + version + "-1";
-//        }
-//        Collections.sort(filterKeys);
-//        String context = filterKeys.get(filterKeys.size() -1);
-//        int startIdxOfPostFix = context.lastIndexOf("-");
-//        int endIdxOfPostFix = context.substring(startIdxOfPostFix).indexOf("/");
-//        int postFixNumber = Integer.valueOf(context.substring(startIdxOfPostFix + 1, startIdxOfPostFix + endIdxOfPostFix));
-//        return context.substring(0, startIdxOfPostFix + 1) + (postFixNumber + 1);
     }
 }
