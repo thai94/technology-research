@@ -12,6 +12,8 @@ import study.git2consul.exception.InvalidParamsException;
 import study.git2consul.logic.SynchConfigLogic;
 import vn.zalopay.base.utils.GsonUtils;
 
+import java.io.IOException;
+
 @SpringBootApplication
 public class GitToConsulApplication implements CommandLineRunner {
 
@@ -35,38 +37,42 @@ public class GitToConsulApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        if (args.length != 5) {
-            throw new InvalidNumberOfParamsException(GsonUtils.toJsonString(args));
-        }
+        try {
+            LOG.info("Run with params: " + GsonUtils.toJsonString(args));
 
-        String serviceName = args[0];
-        String releaseVersion = args[1];
-        String env = args[2];
-        String workSpaceDir = args[3];
-        SyncType syncType = SyncType.getEnum(args[4]);
-        if (syncType == null) {
-            throw new InvalidParamsException("syncType", args[4], "pup|secret|all");
-        }
+            if (args.length != 5) {
+                throw new InvalidNumberOfParamsException(GsonUtils.toJsonString(args));
+            }
 
+            String serviceName = args[0];
+            String releaseVersion = args[1];
+            String env = args[2];
+            String workSpaceDir = args[3];
+            SyncType syncType = SyncType.getEnum(args[4]);
+            if (syncType == null) {
+                throw new InvalidParamsException("syncType", args[4], "pup|secret|all");
+            }
+            boolean result = git2consul(serviceName, releaseVersion, env, workSpaceDir, syncType);
+            if(!result) {
+                System.exit(-1);
+            }
+            LOG.info("Finish.");
+            System.exit(1);
+        } catch (Exception ex) {
+            LOG.error("git2consul ex!", ex);
+            System.exit(-1);
+        }
+    }
+
+    private boolean git2consul(String serviceName, String releaseVersion, String env, String workSpaceDir, SyncType syncType) throws IOException {
         if(syncType == SyncType.PUB) {
-            boolean result = synchConfigLogic.synchPubConfig(serviceName, releaseVersion, env, workSpaceDir);
-            if(!result) {
-                System.exit(-1);
-            }
-            System.exit(1);
+            return synchConfigLogic.synchPubConfig(serviceName, releaseVersion, env, workSpaceDir);
         } else if(syncType == SyncType.SECRET) {
-            boolean result = synchConfigLogic.synchSecretConfig(serviceName, env, workSpaceDir);
-            if(!result) {
-                System.exit(-1);
-            }
-            System.exit(1);
+            return synchConfigLogic.synchSecretConfig(serviceName, env, workSpaceDir);
         } else {
             boolean resultPub = synchConfigLogic.synchPubConfig(serviceName, releaseVersion, env, workSpaceDir);
             boolean resultSecret = synchConfigLogic.synchSecretConfig(serviceName, env, workSpaceDir);
-            if(!resultPub || !resultSecret) {
-                System.exit(-1);
-            }
-            System.exit(1);
+            return resultPub && resultSecret;
         }
     }
 }

@@ -91,22 +91,30 @@ public class SynchConfigLogic {
                     + git2ConsulPropertiesl.getGitConfigFileName();
         }
         path = path.replaceAll(File.separator + File.separator, File.separator);
+        LOG.info("Reading config from: " + path);
         Resource resource = new FileSystemResource(path);
 
-        BufferedInputStream buffInputStr = new BufferedInputStream(resource.getInputStream());
-        int totalByte = buffInputStr.available();
-        byte[] data = new byte[totalByte];
-        int position = 0;
-        int numberOfByteRead = -1;
-        int bufferSize = 0;
-        do {
-            bufferSize = buffInputStr.available() > BUFFER_READ_FILE_SIZE ? BUFFER_READ_FILE_SIZE : buffInputStr.available();
-            numberOfByteRead = buffInputStr.read(data, position, bufferSize);
-            if (numberOfByteRead > 0) {
-                position += numberOfByteRead;
+        BufferedInputStream buffInputStr = null;
+        try {
+            buffInputStr = new BufferedInputStream(resource.getInputStream());
+            int totalByte = buffInputStr.available();
+            byte[] data = new byte[totalByte];
+            int position = 0;
+            int numberOfByteRead = -1;
+            int bufferSize = 0;
+            do {
+                bufferSize = buffInputStr.available() > BUFFER_READ_FILE_SIZE ? BUFFER_READ_FILE_SIZE : buffInputStr.available();
+                numberOfByteRead = buffInputStr.read(data, position, bufferSize);
+                if (numberOfByteRead > 0) {
+                    position += numberOfByteRead;
+                }
+            } while (numberOfByteRead > 0);
+            return data;
+        } finally {
+            if(buffInputStr != null) {
+                buffInputStr.close();
             }
-        } while (numberOfByteRead > 0);
-        return data;
+        }
     }
 
     private boolean sync2Consul(byte[] data, String releaseVersion, String env, SyncType syncType, Git2ConsulProperties.ServiceConfig serviceConfig) {
@@ -121,6 +129,7 @@ public class SynchConfigLogic {
         }
         key = key.replaceAll(File.separator + File.separator, File.separator);
 
+        LOG.info("Sync config to: " + key);
         Response<Boolean> resp = consulClient.setKVBinaryValue(key, data, aclToken, new PutParams(), QueryParams.DEFAULT);
         return resp.getValue();
     }
