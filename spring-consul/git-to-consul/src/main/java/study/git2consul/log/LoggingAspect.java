@@ -29,7 +29,7 @@ public class LoggingAspect {
         try {
             Object result = joinPoint.proceed();
             log.info("Exit: {}.{}() with result = {}", joinPoint.getSignature().getDeclaringTypeName(),
-                        joinPoint.getSignature().getName(), result);
+                    joinPoint.getSignature().getName(), result);
             return result;
         } catch (IllegalArgumentException e) {
             log.error("Illegal argument: {} in {}.{}()", Arrays.toString(joinPoint.getArgs()),

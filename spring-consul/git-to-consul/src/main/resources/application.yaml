@@ -2,20 +2,3 @@ spring:
   main:
     web-application-type: "none"
     banner-mode: "off"
-  profiles:
-    active: qc
-zalopay:
-  git2consul:
-    data-key: stable
-    git-config-file-name: application.yaml
-    list:
-      - service-name: withdraw
-        pub-path-consul: td/withdraw/td-app-client-withdraw/pub
-        secret-path-consul: td/withdraw/td-app-client-withdraw/secret
-        pub-path-git: /pub
-        secret-path-git: /secret
-      - service-name: sample
-        pub-path-consul: transfer/study/pub
-        secret-path-consul: transfer/study/secret
-        pub-path-git: /pub
-        secret-path-git: /secret

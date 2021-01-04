@@ -1,61 +1,52 @@
 package study.git2consul.validate;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import study.git2consul.Git2ConsulProperties;
 import study.git2consul.exception.InvalidParamsException;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class InputValidate {
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+\\.[0-9]+-[0-9]+$");
-    private static final Pattern ENV_PATTERN = Pattern.compile("^dev|qc|stg|staging|real|production$");
-    private static Logger LOG = LoggerFactory
-            .getLogger(InputValidate.class);
-
-    public static void validateServiceName(String serviceName) {
-        if (StringUtils.isEmpty(serviceName)) {
-            throw new InvalidParamsException("serviceName", serviceName, "not empty");
+    public static void validateHost(String host) {
+        if (StringUtils.isEmpty(host)) {
+            throw new InvalidParamsException("host", host, "not empty");
         }
     }
 
-    public static void validateReleaseVersion(String releaseVersion) {
-        Matcher matcher = VERSION_PATTERN.matcher(releaseVersion);
-        if (!matcher.matches()) {
-            throw new InvalidParamsException("releaseVersion", releaseVersion, "format: x.y.z-<incresing number>");
+    public static void validatePort(String port) {
+        if (StringUtils.isEmpty(port)) {
+            throw new InvalidParamsException("port", port, "not empty");
+        }
+
+        try {
+            Integer.parseInt(port);
+        } catch (NumberFormatException ex) {
+            throw new InvalidParamsException("port", port, "not an integer");
         }
     }
 
-    public static void validateEnv(String env) {
-        if (StringUtils.isEmpty(env)) {
-            throw new InvalidParamsException("env", env, "not empty");
-        }
-
-        Matcher matcher = ENV_PATTERN.matcher(env);
-        if (!matcher.matches()) {
-            throw new InvalidParamsException("env", env, "format: dev|qc|stg|staging|real|production");
+    public static void validateToken(String token) {
+        if (StringUtils.isEmpty(token)) {
+            throw new InvalidParamsException("token", token, "not empty");
         }
     }
 
-    public static void validateWorkSpaceDir(String workSpaceDir) {
-        if (StringUtils.isEmpty(workSpaceDir)) {
-            throw new InvalidParamsException("workSpaceDir", workSpaceDir, "not empty");
+    public static void validateYamlFile(String yamlFile) {
+        if (StringUtils.isEmpty(yamlFile)) {
+            throw new InvalidParamsException("yamlFile", yamlFile, "not empty");
         }
     }
 
-    public static void validatePubParams(String serviceName, String releaseVersion, String env, String workSpaceDir) {
-        validateServiceName(serviceName);
-        validateReleaseVersion(releaseVersion);
-        validateEnv(env);
-        validateWorkSpaceDir(workSpaceDir);
+    public static void validateConsulPath(String consulPath) {
+        if (StringUtils.isEmpty(consulPath)) {
+            throw new InvalidParamsException("consulPath", consulPath, "not empty");
+        }
     }
 
-    public static void validateSecretParams(String serviceName, String env, String workSpaceDir) {
-
-        validateServiceName(serviceName);
-        validateEnv(env);
-        validateWorkSpaceDir(workSpaceDir);
+    public static void validateParams(Git2ConsulProperties properties) {
+        validateHost(properties.getHost());
+        validatePort(properties.getPort());
+        validateToken(properties.getToken());
+        validateYamlFile(properties.getYamlFile());
+        validateConsulPath(properties.getConsulPath());
     }
 }

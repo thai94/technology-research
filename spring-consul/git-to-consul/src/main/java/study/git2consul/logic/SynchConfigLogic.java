@@ -6,20 +6,13 @@ import com.ecwid.consul.v1.Response;
 import com.ecwid.consul.v1.kv.model.PutParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cloud.consul.ConsulProperties;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import study.git2consul.Git2ConsulProperties;
 import study.git2consul.GitToConsulApplication;
-import study.git2consul.constant.SyncType;
-import study.git2consul.exception.ServiceNotFoundException;
-import study.git2consul.properties.Git2ConsulProperties;
-import study.git2consul.validate.InputValidate;
 
 import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.IOException;
 
 @Component
@@ -30,69 +23,29 @@ public class SynchConfigLogic {
 
     private final int BUFFER_READ_FILE_SIZE = 1024; // byte
 
-    @Autowired
-    ConsulClient consulClient;
-    @Autowired
-    Git2ConsulProperties git2ConsulPropertiesl;
-    @Autowired
-    ConsulProperties consulProperties;
-    @Value("${spring.cloud.consul.token}")
-    private String aclToken;
+    private ConsulClient initConsulClient(Git2ConsulProperties consulProperties) {
+        int agentPort = Integer.valueOf(consulProperties.getPort());
+        String agentHost = consulProperties.getHost();
+        return new ConsulClient(agentHost, agentPort);
+    }
 
     /**
-     * @param releaseVersion x.y.x-<incresing number>
-     * @param env            qc|stg|real
      * @return
      * @throws IOException
      */
-    public boolean synchPubConfig(String serviceName, String releaseVersion, String env, String workSpaceDir) throws IOException {
-
-        Git2ConsulProperties.ServiceConfig serviceConfig = git2ConsulPropertiesl.findServiceConfigByServiceName(serviceName);
-
-        if (serviceConfig == null) {
-            throw new ServiceNotFoundException(serviceName);
-        }
-
-        InputValidate.validatePubParams(serviceName, releaseVersion, env, workSpaceDir);
+    public boolean sync(Git2ConsulProperties properties) throws IOException {
 
         // read config
-        byte[] configData = readConfig(workSpaceDir, env, SyncType.PUB, serviceConfig);
+        byte[] configData = readConfig(properties);
 
         // update to consul
-        return sync2Consul(configData, releaseVersion, env, SyncType.PUB, serviceConfig);
+        return sync2Consul(configData, properties);
     }
 
-    public boolean synchSecretConfig(String serviceName, String env, String workSpaceDir) throws IOException {
+    private byte[] readConfig(Git2ConsulProperties properties) throws IOException {
 
-        Git2ConsulProperties.ServiceConfig serviceConfig = git2ConsulPropertiesl.findServiceConfigByServiceName(serviceName);
-
-        if (serviceConfig == null) {
-            throw new ServiceNotFoundException(serviceName);
-        }
-
-        InputValidate.validateSecretParams(serviceName, env, workSpaceDir);
-
-        // read config
-        byte[] configData = readConfig(workSpaceDir, env, SyncType.SECRET, serviceConfig);
-
-        // update to consul
-        return sync2Consul(configData, "none", env, SyncType.SECRET, serviceConfig);
-    }
-
-    private byte[] readConfig(String workSpaceDir, String env, SyncType syncType, Git2ConsulProperties.ServiceConfig serviceConfig) throws IOException {
-
-        String path = "";
-        // public
-        if (syncType == SyncType.PUB) {
-            path = workSpaceDir + File.separator + serviceConfig.getPubPathGit() + File.separator + env + File.separator
-                    + git2ConsulPropertiesl.getGitConfigFileName();
-        } else {
-            path = workSpaceDir + File.separator + serviceConfig.getSecretPathGit() + File.separator + env + File.separator
-                    + git2ConsulPropertiesl.getGitConfigFileName();
-        }
-        path = path.replaceAll(File.separator + File.separator, File.separator);
-        LOG.info("Reading config from: " + path);
-        Resource resource = new FileSystemResource(path);
+        LOG.info("Reading config from: " + properties.getYamlFile());
+        Resource resource = new FileSystemResource(properties.getYamlFile());
 
         BufferedInputStream buffInputStr = null;
         try {
@@ -111,26 +64,17 @@ public class SynchConfigLogic {
             } while (numberOfByteRead > 0);
             return data;
         } finally {
-            if(buffInputStr != null) {
+            if (buffInputStr != null) {
                 buffInputStr.close();
             }
         }
     }
 
-    private boolean sync2Consul(byte[] data, String releaseVersion, String env, SyncType syncType, Git2ConsulProperties.ServiceConfig serviceConfig) {
+    private boolean sync2Consul(byte[] data, Git2ConsulProperties properties) {
 
         // get context
-        String key = "";
-        if (syncType == SyncType.PUB) {
-            key = serviceConfig.getPubPathConsul() + File.separator + env + File.separator + releaseVersion + File.separator
-                    + git2ConsulPropertiesl.getDataKey();
-        } else {
-            key = serviceConfig.getSecretPathConsul() + File.separator + env + File.separator + git2ConsulPropertiesl.getDataKey();
-        }
-        key = key.replaceAll(File.separator + File.separator, File.separator);
-
-        LOG.info("Sync config to: " + key);
-        Response<Boolean> resp = consulClient.setKVBinaryValue(key, data, aclToken, new PutParams(), QueryParams.DEFAULT);
+        LOG.info("Sync config to: " + properties.getConsulPath());
+        Response<Boolean> resp = initConsulClient(properties).setKVBinaryValue(properties.getConsulPath(), data, properties.getToken(), new PutParams(), QueryParams.DEFAULT);
         return resp.getValue();
     }
 }
