@@ -58,9 +58,14 @@ public class GitToConsulApplication implements CommandLineRunner {
 
             InputValidate.validateParams(properties);
 
-            synchConfigLogic.sync(properties);
-            LOG.info("Finish.");
-            System.exit(1);
+            boolean result = synchConfigLogic.sync(properties);
+            if(result) {
+                LOG.info("Finish: success");
+                System.exit(1);
+            }
+            LOG.info("Finish: fail");
+            System.exit(-1);
+
         } catch (Exception ex) {
             LOG.error("git2consul ex!", ex);
             System.exit(-1);
