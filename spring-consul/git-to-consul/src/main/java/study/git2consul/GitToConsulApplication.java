@@ -61,7 +61,7 @@ public class GitToConsulApplication implements CommandLineRunner {
             boolean result = synchConfigLogic.sync(properties);
             if(result) {
                 LOG.info("Finish: success");
-                System.exit(1);
+                System.exit(0);
             }
             LOG.info("Finish: fail");
             System.exit(-1);
