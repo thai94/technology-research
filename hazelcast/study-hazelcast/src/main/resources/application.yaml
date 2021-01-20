@@ -2,5 +2,8 @@ study:
   hazelcast:
     namespace: default
     service-name: hzc-service-name
+    port: 6701
+    tcp-ip-members: 127.0.0.1:6701
+    instance-name: Styudy
 server:
   port: 8080

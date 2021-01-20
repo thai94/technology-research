@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties("study.hazelcast")
 public class HazelcastProperties {
 
+    public int port;
+    public String tcpIpMembers;
+    public String instanceName;
+
     public String namespace;
     public String serviceName;
 
@@ -24,5 +28,29 @@ public class HazelcastProperties {
 
     public void setServiceName(String serviceName) {
         this.serviceName = serviceName;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getTcpIpMembers() {
+        return tcpIpMembers;
+    }
+
+    public void setTcpIpMembers(String tcpIpMembers) {
+        this.tcpIpMembers = tcpIpMembers;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
+    }
+
+    public void setInstanceName(String instanceName) {
+        this.instanceName = instanceName;
     }
 }
