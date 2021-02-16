@@ -26,10 +26,10 @@ public class StudyHazelcastApplicationConfiguration {
         Config hazelCastConf = new Config();
         hazelCastConf.getNetworkConfig().setPort(hazelcastProperties.port).setPortAutoIncrement(false);
         hazelCastConf.setProperty("hazelcast.shutdownhook.policy", "GRACEFUL");
-//        JoinConfig join = hazelCastConf.getNetworkConfig().getJoin();
-//        join.getMulticastConfig().setEnabled(false);
-//        join.getTcpIpConfig().setEnabled(true).clear().setMembers(Arrays.asList(hazelcastProperties.tcpIpMembers.split(";")));
-//        hazelCastConf.setInstanceName(hazelcastProperties.instanceName);
+        JoinConfig join = hazelCastConf.getNetworkConfig().getJoin();
+        join.getMulticastConfig().setEnabled(false);
+        join.getTcpIpConfig().setEnabled(true).clear().setMembers(Arrays.asList(hazelcastProperties.tcpIpMembers.split(";")));
+        hazelCastConf.setInstanceName(hazelcastProperties.instanceName);
 
         SerializationConfig serializationConfig = new SerializationConfig();
         serializationConfig.addPortableFactory(1, new OrderEntityPortableFactory());
