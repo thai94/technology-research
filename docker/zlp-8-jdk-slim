@@ -1,0 +1,16 @@
+FROM openjdk:8-jdk-slim
+
+ARG USER=zdeploy_docker
+ARG GROUP=zdeploy_docker
+ARG UID=2000
+ARG GID=2000
+ARG HOME=/home/zdeploy_docker
+ENV TZ=Asia/Ho_Chi_Minh
+RUN apt update && apt install iputils-ping telnet net-tools procps -y
+RUN addgroup --gid $GID $GROUP && \
+    adduser --home $HOME --uid $UID --shell /bin/false --disabled-password -gecos '' --ingroup $GROUP $USER
+RUN echo $TZ > /etc/timezone && \
+    update-ca-certificates
+COPY grpc_health_probe-linux-amd64 /bin/grpc-health-probe
+WORKDIR $HOME
+USER $USER
