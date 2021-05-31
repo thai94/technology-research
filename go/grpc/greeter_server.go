@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	pb "helloworld"
+	pb "github.com/thai94/technology-research/tree/master/go/grpc/proto"
 
 	"google.golang.org/grpc"
 )
@@ -15,6 +15,7 @@ const (
 )
 
 type server struct {
+	pb.UnimplementedGreeterServer
 }
 
 func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {

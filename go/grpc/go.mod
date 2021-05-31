@@ -1,4 +1,4 @@
-module gitlab.zalopay.vn
+module github.com/thai94/technology-research/tree/master/go/grpc
 
 go 1.16
 
