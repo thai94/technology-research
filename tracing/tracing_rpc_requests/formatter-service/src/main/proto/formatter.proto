@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.study.tracing.grpc";
+
+package com.study.tracing.grpc;
+
+service FormatterService {
+  rpc format (FormatRequest) returns (FormatResponse);
+}
+
+message FormatRequest {
+  string hello_to = 1;
+}
+
+message FormatResponse {
+  string msg = 1;
+}
