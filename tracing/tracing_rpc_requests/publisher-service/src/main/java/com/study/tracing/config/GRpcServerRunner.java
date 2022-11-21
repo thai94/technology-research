@@ -1,6 +1,6 @@
 package com.study.tracing.config;
 
-import com.study.tracing.grpc.FormatterServiceImpl;
+import com.study.tracing.grpc.PublisherServiceImpl;
 import io.grpc.*;
 import io.grpc.health.v1.HealthGrpc;
 import io.grpc.protobuf.services.HealthStatusManager;
@@ -24,13 +24,13 @@ public class GRpcServerRunner implements SmartLifecycle {
     private final HealthGrpc.HealthImplBase healthService = (HealthGrpc.HealthImplBase) healthStatusManager.getHealthService();
     private CountDownLatch latch;
     private Server server;
-    private final FormatterServiceImpl formatterService;
+    private final PublisherServiceImpl publisherService;
     private final TracingServerInterceptor tracingServerInterceptor;
 
-    public GRpcServerRunner(ServerBuilder<?> serverBuilder, FormatterServiceImpl formatterService, TracingServerInterceptor tracingServerInterceptor) {
+    public GRpcServerRunner(ServerBuilder<?> serverBuilder, PublisherServiceImpl formatterService, TracingServerInterceptor tracingServerInterceptor) {
 
         this.serverBuilder = serverBuilder;
-        this.formatterService = formatterService;
+        this.publisherService = formatterService;
         this.tracingServerInterceptor = tracingServerInterceptor;
     }
 
@@ -44,13 +44,13 @@ public class GRpcServerRunner implements SmartLifecycle {
         latch = new CountDownLatch(1);
         try {
 
-            ServerServiceDefinition formatterServiceDn = formatterService.bindService();
-            List<ServerInterceptor> formatterInterceptors = new ArrayList<>();
-            formatterInterceptors.add(tracingServerInterceptor);
-            ServerInterceptors.intercept(formatterServiceDn, formatterInterceptors);
+            ServerServiceDefinition serviceDefinition = publisherService.bindService();
+            List<ServerInterceptor> serverInterceptors = new ArrayList<>();
+            serverInterceptors.add(tracingServerInterceptor);
+            serviceDefinition = ServerInterceptors.intercept(serviceDefinition, serverInterceptors);
 
             server = serverBuilder
-                    .addService(formatterServiceDn)
+                    .addService(serviceDefinition)
                     .addService(healthService)
                     .build()
                     .start();

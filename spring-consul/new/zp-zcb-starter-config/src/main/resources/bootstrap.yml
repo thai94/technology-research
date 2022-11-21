@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    active: qc
+  cloud:
+    consul:
+      host: http://10.40.81.2:7510
+      port: 7510
+      token: 43c2237e-6ded-9ab6-7f2f-b3bfc0b4ab34
+      config:
+        enabled: true
+        format: YAML
+        prefix: td/tdtools/td-admtool-core
+        name: qc
+        profileSeparator: /
+        data-key: stable

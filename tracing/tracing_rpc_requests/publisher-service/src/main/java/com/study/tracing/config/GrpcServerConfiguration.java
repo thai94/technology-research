@@ -1,6 +1,6 @@
 package com.study.tracing.config;
 
-import com.study.tracing.grpc.FormatterServiceImpl;
+import com.study.tracing.grpc.PublisherServiceImpl;
 import io.grpc.ServerBuilder;
 import io.grpc.netty.NettyServerBuilder;
 import io.opentracing.contrib.grpc.TracingServerInterceptor;
@@ -16,14 +16,14 @@ import org.springframework.context.annotation.Configuration;
 public class GrpcServerConfiguration {
 
     @Autowired
-    private FormatterServiceImpl formatterService;
+    private PublisherServiceImpl formatterService;
 
     @Autowired
     private TracingServerInterceptor tracingServerInterceptor;
 
     @Bean
     public ServerBuilder<?> nettyServerBuilder() {
-        return NettyServerBuilder.forPort(9091);
+        return NettyServerBuilder.forPort(9092);
     }
 
     @Bean
