@@ -3,6 +3,7 @@ package main
 import "fmt"
 
 func main() {
+
 	var countryCapitalMap map[string]string
 
 	countryCapitalMap = make(map[string]string)
