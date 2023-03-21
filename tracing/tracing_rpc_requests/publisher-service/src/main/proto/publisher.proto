@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.study.tracing.grpc";
+
+package com.study.tracing.grpc;
+
+service PublisherService {
+  rpc publish (PublishRequest) returns (PublishResponse);
+}
+
+message PublishRequest {
+  string hello_str = 1;
+}
+
+message PublishResponse {
+  string msg = 1;
+}

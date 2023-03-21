@@ -4,12 +4,13 @@ import io.grpc.stub.StreamObserver;
 import org.springframework.stereotype.Service;
 
 @Service
-public class FormatterServiceImpl extends FormatterServiceGrpc.FormatterServiceImplBase {
+public class PublisherServiceImpl extends PublisherServiceGrpc.PublisherServiceImplBase {
 
     @Override
-    public void format(FormatRequest request, StreamObserver<FormatResponse> responseObserver) {
+    public void publish(PublishRequest request, StreamObserver<PublishResponse> responseObserver) {
 
-        responseObserver.onNext(FormatResponse.newBuilder().setMsg(String.format("Hello, %s!", request.getHelloTo())).build());
+        System.out.println(request.getHelloStr());
+        responseObserver.onNext(PublishResponse.newBuilder().setMsg("published").build());
         responseObserver.onCompleted();
     }
 }
