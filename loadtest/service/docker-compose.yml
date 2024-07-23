@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  redis-node-1:
+    image: redis:latest
+    ports:
+      - "7000:6379"
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    volumes:
+      - redis-node-1-data:/data
+    networks:
+      - redis-cluster-network
+
+  redis-node-2:
+    image: redis:latest
+    ports:
+      - "7001:6379"
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    volumes:
+      - redis-node-2-data:/data
+    networks:
+      - redis-cluster-network
+
+  redis-node-3:
+    image: redis:latest
+    ports:
+      - "7002:6379"
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    volumes:
+      - redis-node-3-data:/data
+    networks:
+      - redis-cluster-network
+
+  redis-node-4:
+    image: redis:latest
+    ports:
+      - "7003:6379"
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    volumes:
+      - redis-node-4-data:/data
+    networks:
+      - redis-cluster-network
+
+  redis-node-5:
+    image: redis:latest
+    ports:
+      - "7004:6379"
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    volumes:
+      - redis-node-5-data:/data
+    networks:
+      - redis-cluster-network
+
+  redis-node-6:
+    image: redis:latest
+    ports:
+      - "7005:6379"
+    command: redis-server --cluster-enabled yes --cluster-config-file /data/nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    volumes:
+      - redis-node-6-data:/data
+    networks:
+      - redis-cluster-network
+  be:
+    image: be-api
+    restart: always
+    ports:
+      - 8080:8080
+
+networks:
+  redis-cluster-network:
+    driver: bridge
+
+volumes:
+  redis-node-1-data:
+  redis-node-2-data:
+  redis-node-3-data:
+  redis-node-4-data:
+  redis-node-5-data:
+  redis-node-6-data:
