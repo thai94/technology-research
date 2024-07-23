@@ -65,6 +65,26 @@ services:
     restart: always
     ports:
       - 8080:8080
+    networks:
+      - redis-cluster-network
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    networks:
+      - redis-cluster-network
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=secret
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    networks:
+      - redis-cluster-network
 
 networks:
   redis-cluster-network:

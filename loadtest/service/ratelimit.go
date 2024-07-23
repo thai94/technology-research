@@ -15,25 +15,23 @@ import (
 // 	Password: "SUPER_SECRET_PASSWORD",
 // })
 
+var clusterOptions = &redisV9.ClusterOptions{
+	Addrs: []string{
+		"redis-node-1:6379",
+		"redis-node-2:6379",
+		"redis-node-3:6379",
+		"redis-node-4:6379",
+		"redis-node-5:6379",
+		"redis-node-6:6379",
+	},
+}
+var redis = redisV9.NewClusterClient(clusterOptions)
+
 func RateLimit(key string, rate int64, period time.Duration) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		clusterOptions := &redisV9.ClusterOptions{
-			Addrs: []string{
-				"redis-node-1:6379",
-				"redis-node-2:6379",
-				"redis-node-3:6379",
-				"redis-node-4:6379",
-				"redis-node-5:6379",
-				"redis-node-6:6379",
-			},
-		}
-		var redis = redisV9.NewClusterClient(clusterOptions)
+		start := time.Now()
+
 		if redis == nil {
-			c.Next()
-			return
-		}
-		if err := redis.Ping(c.Request.Context()).Err(); err != nil {
-			fmt.Println(err)
 			c.Next()
 			return
 		}
@@ -51,6 +49,9 @@ func RateLimit(key string, rate int64, period time.Duration) gin.HandlerFunc {
 			}()
 		}
 		if count <= rate {
+			duration := time.Since(start).Seconds()
+			requestLatency.WithLabelValues(c.Request.URL.Path).Observe(duration)
+
 			c.Next()
 			return
 		}
@@ -66,8 +67,7 @@ func RateLimit(key string, rate int64, period time.Duration) gin.HandlerFunc {
 		c.Header("Retry-After", strconv.Itoa(int(retryAfter)))
 		c.AbortWithError(http.StatusTooManyRequests, fmt.Errorf("rate limit"))
 
-		// rateLimitKey := fmt.Sprintf("ratelimit:%d", time.Now().Unix())
-		// redis.Set(c.Request.Context(), rateLimitKey, "abc", time.Minute).Result()
-		// c.Next()
+		duration := time.Since(start).Seconds()
+		requestLatency.WithLabelValues(c.Request.URL.Path).Observe(duration)
 	}
 }
