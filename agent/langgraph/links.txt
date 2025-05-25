@@ -1,1 +1,2 @@
 https://github.com/langchain-ai/open_deep_research
+https://langchain-ai.github.io/langgraph/tutorials/workflows/#workflows-and-agents
