@@ -40,10 +40,10 @@ class Configuration:
     number_of_queries: int = 2 # Number of search queries to generate per iteration
     max_search_depth: int = 2 # Maximum number of reflection + search iterations
     planner_provider: str = "ollama"  # Defaults to Anthropic as provider
-    planner_model: str = "llama3.1:8b" # Defaults to claude-3-7-sonnet-latest
+    planner_model: str = "gemma3:12b" # Defaults to claude-3-7-sonnet-latest
     planner_model_kwargs: Optional[Dict[str, Any]] = None # kwargs for planner_model
     writer_provider: str = "ollama" # Defaults to Anthropic as provider
-    writer_model: str = "llama3.1:8b" # Defaults to claude-3-5-sonnet-latest
+    writer_model: str = "gemma3:12b" # Defaults to claude-3-5-sonnet-latest
     writer_model_kwargs: Optional[Dict[str, Any]] = None # kwargs for writer_model
     search_api: SearchAPI = SearchAPI.TAVILY # Default to TAVILY
     search_api_config: Optional[Dict[str, Any]] = None 

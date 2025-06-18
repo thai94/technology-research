@@ -279,7 +279,7 @@ async def write_final_sections(state: SectionState, config: RunnableConfig):
     writer_model = init_chat_model(model=writer_model_name, model_provider=writer_provider, model_kwargs=writer_model_kwargs) 
 
     section_content = await writer_model.ainvoke([SystemMessage(content=system_instructions),
-                                           HumanMessage(content="Generate a report section based on the provided report content.")])
+                                           HumanMessage(content="Generate a report section based on the provided report content." + system_instructions)])
     # Write content to section 
     section.content = section_content.content
     # Write the updated section to completed sections
